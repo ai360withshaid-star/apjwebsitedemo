@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shaid · GenAI Architect & AI Product Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --bg:#0a0a0f;
+    --bg-2:#101019;
+    --ink:#e8e8f0;
+    --ink-dim:#9090a8;
+    --ink-faint:#5a5a72;
+    --line:rgba(255,255,255,0.08);
+    --line-bright:rgba(255,255,255,0.18);
+    --accent:#7c5cff;
+    --accent-2:#00d4ff;
+    --accent-3:#ff6b9d;
+    --accent-4:#ffd166;
+    --grid:rgba(124,92,255,0.06);
+  }
+  html,body{background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;overflow-x:hidden;line-height:1.6;-webkit-font-smoothing:antialiased}
+  body{cursor:none}
+
+  .cursor{position:fixed;width:8px;height:8px;background:var(--accent-2);border-radius:50%;pointer-events:none;z-index:9999;mix-blend-mode:difference;transition:transform .15s ease;left:0;top:0}
+  .cursor-ring{position:fixed;width:36px;height:36px;border:1px solid var(--accent-2);border-radius:50%;pointer-events:none;z-index:9998;transition:width .25s,height .25s,border-color .25s,background .25s;left:0;top:0}
+  .cursor-ring.hover{width:60px;height:60px;border-color:var(--accent-3);background:rgba(255,107,157,0.08)}
+
+  .bg-grid{position:fixed;inset:0;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:60px 60px;z-index:-2;mask-image:radial-gradient(ellipse at center,#000 0%,transparent 70%);-webkit-mask-image:radial-gradient(ellipse at center,#000 0%,transparent 70%)}
+  .orb{position:fixed;border-radius:50%;filter:blur(80px);opacity:.45;z-index:-1;pointer-events:none}
+  .orb-1{width:520px;height:520px;background:#7c5cff;top:-100px;left:-100px;animation:drift1 18s ease-in-out infinite}
+  .orb-2{width:420px;height:420px;background:#00d4ff;bottom:-80px;right:-80px;animation:drift2 22s ease-in-out infinite}
+  .orb-3{width:340px;height:340px;background:#ff6b9d;top:50%;left:50%;animation:drift3 26s ease-in-out infinite}
+  @keyframes drift1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(120px,80px) scale(1.15)}}
+  @keyframes drift2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-140px,-100px) scale(1.2)}}
+  @keyframes drift3{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-30%,-70%) scale(.85)}}
+
+  .particles{position:fixed;inset:0;z-index:-1;pointer-events:none}
+
+  nav{position:fixed;top:0;left:0;right:0;padding:24px 48px;display:flex;justify-content:space-between;align-items:center;z-index:100;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);background:rgba(10,10,15,0.5);border-bottom:1px solid transparent;transition:border-color .3s}
+  nav.scrolled{border-bottom-color:var(--line)}
+  .logo{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:20px;letter-spacing:-.5px;display:flex;align-items:center;gap:8px}
+  .logo-dot{width:10px;height:10px;background:var(--accent-2);border-radius:50%;animation:pulse 2s ease-in-out infinite}
+  @keyframes pulse{0%,100%{transform:scale(1);opacity:1;box-shadow:0 0 0 0 rgba(0,212,255,.6)}50%{transform:scale(1.3);opacity:.7;box-shadow:0 0 0 12px rgba(0,212,255,0)}}
+  .nav-links{display:flex;gap:36px;font-size:13px;font-weight:500;letter-spacing:.5px;text-transform:uppercase}
+  .nav-links a{color:var(--ink-dim);text-decoration:none;position:relative;transition:color .3s}
+  .nav-links a::after{content:'';position:absolute;bottom:-6px;left:0;width:0;height:1px;background:var(--accent-2);transition:width .3s}
+  .nav-links a:hover{color:var(--ink)}
+  .nav-links a:hover::after{width:100%}
+
+  .hero{min-height:100vh;display:grid;grid-template-columns:1.1fr .9fr;align-items:center;gap:64px;padding:120px 48px 80px;max-width:1400px;margin:0 auto;position:relative}
+  .hero-text{position:relative;z-index:2}
+  .tag{display:inline-flex;align-items:center;gap:10px;padding:8px 16px;border:1px solid var(--line-bright);border-radius:100px;font-size:12px;font-weight:500;color:var(--ink-dim);margin-bottom:32px;letter-spacing:.5px;backdrop-filter:blur(10px);background:rgba(255,255,255,0.02)}
+  .tag .live-dot{width:6px;height:6px;background:#00ff9d;border-radius:50%;animation:pulse 1.6s ease-in-out infinite;box-shadow:0 0 8px #00ff9d}
+  h1{font-family:'Space Grotesk',sans-serif;font-size:clamp(48px,7vw,96px);font-weight:700;line-height:0.95;letter-spacing:-.04em;margin-bottom:28px}
+  h1 .word{display:inline-block;overflow:hidden;vertical-align:top}
+  h1 .word span{display:inline-block;animation:slideUp 1s cubic-bezier(.2,1,.3,1) backwards}
+  h1 .gradient{background:linear-gradient(135deg,var(--accent) 0%,var(--accent-2) 50%,var(--accent-3) 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;background-size:200% 200%;animation:slideUp 1s cubic-bezier(.2,1,.3,1) backwards,gradientShift 6s ease-in-out infinite}
+  @keyframes slideUp{from{transform:translateY(110%)}to{transform:translateY(0)}}
+  @keyframes gradientShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+  .hero-text h1 .word:nth-child(1) span{animation-delay:.1s}
+  .hero-text h1 .word:nth-child(2) span{animation-delay:.2s}
+  .hero-text h1 .word:nth-child(3) span{animation-delay:.3s}
+  .hero-text h1 .word:nth-child(4) span{animation-delay:.4s}
+
+  .role-rotator{font-family:'JetBrains Mono',monospace;font-size:18px;color:var(--accent-2);margin-bottom:24px;height:28px;display:flex;align-items:center;gap:8px}
+  .role-rotator::before{content:'>';color:var(--ink-faint)}
+  .role-text{border-right:2px solid var(--accent-2);padding-right:4px;animation:blink 1s steps(1) infinite}
+  @keyframes blink{50%{border-color:transparent}}
+
+  .lede{font-size:18px;color:var(--ink-dim);max-width:540px;margin-bottom:40px;line-height:1.7;animation:fadeIn 1s .8s backwards}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+  .cta-row{display:flex;gap:16px;flex-wrap:wrap;animation:fadeIn 1s 1s backwards}
+  .btn{padding:14px 28px;border-radius:100px;font-size:14px;font-weight:500;text-decoration:none;display:inline-flex;align-items:center;gap:10px;transition:transform .3s,box-shadow .3s,border-color .3s,color .3s;font-family:inherit;border:none;cursor:none}
+  .btn-primary{background:var(--ink);color:var(--bg)}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(255,255,255,.15)}
+  .btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--line-bright)}
+  .btn-ghost:hover{border-color:var(--accent-2);color:var(--accent-2);transform:translateY(-2px)}
+  .btn .arrow{transition:transform .3s}
+  .btn:hover .arrow{transform:translateX(4px)}
+
+  .photo-stage{position:relative;display:flex;align-items:center;justify-content:center;animation:fadeIn 1.2s .4s backwards}
+  .photo-frame{position:relative;width:min(440px,100%);aspect-ratio:4/5;border-radius:24px;overflow:hidden;background:var(--bg-2);border:1px solid var(--line);transform:perspective(1000px) rotateY(-6deg) rotateX(2deg);transition:transform .6s cubic-bezier(.2,1,.3,1);z-index:2}
+  .photo-frame img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .8s}
+  .photo-frame:hover img{transform:scale(1.05)}
+  .photo-placeholder{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--ink-faint);font-size:13px;text-align:center;padding:24px;background:linear-gradient(135deg,#1a1a2e 0%,#0f0f1a 100%)}
+  .photo-placeholder svg{width:80px;height:80px;margin-bottom:16px;opacity:.4}
+  .photo-placeholder strong{color:var(--ink);font-weight:500;font-family:'JetBrains Mono',monospace;font-size:12px}
+
+  .float-badge{position:absolute;background:rgba(20,20,30,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--line-bright);border-radius:14px;padding:12px 16px;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:500;z-index:3;animation:float 4s ease-in-out infinite;color:var(--ink)}
+  .float-badge svg{width:20px;height:20px}
+  .fb-1{top:8%;left:-8%;animation-delay:0s}
+  .fb-2{top:42%;right:-12%;animation-delay:1.3s}
+  .fb-3{bottom:8%;left:-4%;animation-delay:2.6s}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+
+  .photo-glow{position:absolute;inset:-30px;background:radial-gradient(circle at center,rgba(124,92,255,.4) 0%,transparent 70%);z-index:1;animation:glow 4s ease-in-out infinite}
+  @keyframes glow{0%,100%{opacity:.6;transform:scale(1)}50%{opacity:1;transform:scale(1.1)}}
+
+  .scroll-cue{position:absolute;bottom:32px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--ink-faint);font-size:11px;letter-spacing:2px;text-transform:uppercase;animation:fadeIn 1s 1.5s backwards}
+  .scroll-cue .line{width:1px;height:36px;background:linear-gradient(to bottom,var(--ink-faint),transparent);animation:scrollLine 2s ease-in-out infinite}
+  @keyframes scrollLine{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}50.01%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+
+  .marquee{padding:32px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);overflow:hidden;background:var(--bg-2);position:relative}
+  .marquee-track{display:flex;gap:64px;animation:scroll 40s linear infinite;width:max-content}
+  .marquee-item{display:flex;align-items:center;gap:14px;font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:500;color:var(--ink-dim);white-space:nowrap}
+  .marquee-item .dot{width:6px;height:6px;background:var(--accent-2);border-radius:50%}
+  @keyframes scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+  section{padding:120px 48px;max-width:1400px;margin:0 auto;position:relative}
+  .section-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:64px;flex-wrap:wrap;gap:24px}
+  .section-num{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent-2);margin-bottom:12px;letter-spacing:2px}
+  h2{font-family:'Space Grotesk',sans-serif;font-size:clamp(36px,5vw,64px);font-weight:700;line-height:1;letter-spacing:-.03em;max-width:700px}
+  .section-sub{color:var(--ink-dim);font-size:16px;max-width:380px;line-height:1.7}
+
+  .reveal{opacity:0;transform:translateY(40px);transition:opacity .9s cubic-bezier(.2,1,.3,1),transform .9s cubic-bezier(.2,1,.3,1)}
+  .reveal.in{opacity:1;transform:translateY(0)}
+
+  .about-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:64px;align-items:start}
+  .about-text p{font-size:18px;color:var(--ink-dim);margin-bottom:20px;line-height:1.8}
+  .about-text strong{color:var(--ink);font-weight:500}
+  .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .stat{padding:32px 24px;border:1px solid var(--line);border-radius:16px;background:var(--bg-2);transition:border-color .4s,transform .4s;position:relative;overflow:hidden}
+  .stat::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(124,92,255,.08),transparent);transition:left .8s}
+  .stat:hover::before{left:100%}
+  .stat:hover{border-color:var(--accent);transform:translateY(-4px)}
+  .stat-num{font-family:'Space Grotesk',sans-serif;font-size:48px;font-weight:700;line-height:1;background:linear-gradient(135deg,var(--accent-2),var(--accent));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px}
+  .stat-label{font-size:13px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:1.5px}
+
+  .skills-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+  .skill-card{padding:32px;border:1px solid var(--line);border-radius:20px;background:var(--bg-2);position:relative;overflow:hidden;transition:border-color .4s,transform .4s}
+  .skill-card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(124,92,255,.15) 0%,transparent 50%);opacity:0;transition:opacity .4s;pointer-events:none}
+  .skill-card:hover::before{opacity:1}
+  .skill-card:hover{border-color:var(--line-bright);transform:translateY(-6px)}
+  .skill-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:24px;background:rgba(124,92,255,.12);color:var(--accent-2)}
+  .skill-icon svg{width:24px;height:24px}
+  .skill-card h3{font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:600;margin-bottom:12px;letter-spacing:-.5px}
+  .skill-card p{font-size:14px;color:var(--ink-dim);line-height:1.7;margin-bottom:20px}
+  .skill-tags{display:flex;flex-wrap:wrap;gap:8px}
+  .skill-tag{padding:5px 11px;border:1px solid var(--line);border-radius:100px;font-size:11px;color:var(--ink-dim);font-family:'JetBrains Mono',monospace;letter-spacing:.3px}
+
+  .timeline{position:relative;padding-left:40px}
+  .timeline::before{content:'';position:absolute;left:8px;top:8px;bottom:8px;width:1px;background:linear-gradient(to bottom,var(--accent),var(--accent-2),transparent)}
+  .tl-item{position:relative;padding-bottom:48px}
+  .tl-item:last-child{padding-bottom:0}
+  .tl-item::before{content:'';position:absolute;left:-37px;top:6px;width:14px;height:14px;border-radius:50%;background:var(--bg);border:2px solid var(--accent-2);box-shadow:0 0 0 4px rgba(0,212,255,.15)}
+  .tl-period{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent-2);letter-spacing:1px;margin-bottom:6px}
+  .tl-role{font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:600;margin-bottom:4px;letter-spacing:-.3px}
+  .tl-company{font-size:14px;color:var(--ink-dim);margin-bottom:12px}
+  .tl-desc{font-size:15px;color:var(--ink-dim);line-height:1.7;max-width:680px}
+
+  .contact-section{padding:140px 48px;text-align:center;position:relative}
+  .contact-section h2{margin:0 auto 24px;font-size:clamp(56px,9vw,140px);line-height:.95}
+  .contact-lede{font-size:18px;color:var(--ink-dim);max-width:580px;margin:0 auto 56px;line-height:1.7}
+  .contact-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;max-width:1000px;margin:0 auto}
+  .contact-card{padding:28px;border:1px solid var(--line);border-radius:16px;background:var(--bg-2);text-decoration:none;color:var(--ink);transition:border-color .4s,transform .4s,background .4s;display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:16px;position:relative;overflow:hidden}
+  .contact-card::after{content:'→';position:absolute;top:24px;right:24px;font-size:20px;color:var(--ink-faint);transition:transform .3s,color .3s}
+  .contact-card:hover{border-color:var(--accent-2);transform:translateY(-4px);background:rgba(0,212,255,.04)}
+  .contact-card:hover::after{transform:translate(4px,-4px);color:var(--accent-2)}
+  .contact-icon{width:44px;height:44px;border-radius:12px;background:rgba(0,212,255,.12);color:var(--accent-2);display:flex;align-items:center;justify-content:center}
+  .contact-icon svg{width:22px;height:22px}
+  .contact-label{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--ink-dim)}
+  .contact-value{font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:500;letter-spacing:-.3px;word-break:break-word}
+
+  footer{padding:48px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;color:var(--ink-faint);font-size:13px;font-family:'JetBrains Mono',monospace}
+  footer .heart{color:var(--accent-3);animation:beat 1.4s ease-in-out infinite;display:inline-block}
+  @keyframes beat{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
+
+  @media (max-width:900px){
+    body{cursor:auto}
+    .cursor,.cursor-ring{display:none}
+    .btn{cursor:pointer}
+    nav{padding:18px 24px}
+    .nav-links{display:none}
+    .hero{grid-template-columns:1fr;padding:100px 24px 60px;gap:48px}
+    .photo-stage{order:-1}
+    .photo-frame{width:min(320px,100%);transform:none}
+    .float-badge{font-size:12px;padding:10px 14px}
+    .fb-1{left:-4%}
+    .fb-2{right:-4%}
+    section{padding:80px 24px}
+    .about-grid{grid-template-columns:1fr;gap:40px}
+    .stats-grid{grid-template-columns:1fr 1fr}
+    .contact-section{padding:80px 24px}
+    footer{padding:32px 24px;flex-direction:column;text-align:center}
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+<canvas class="particles" id="particles"></canvas>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<nav id="nav">
+  <div class="logo"><span class="logo-dot"></span> shaid<span style="color:var(--accent-2)">.</span></div>
+  <div class="nav-links">
+    <a href="#about">About</a>
+    <a href="#skills">Work</a>
+    <a href="#journey">Journey</a>
+    <a href="#contact">Contact</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-text">
+    <div class="tag"><span class="live-dot"></span> Available for AI projects · Chennai, IN</div>
+    <h1>
+      <div class="word"><span>Building</span></div>
+      <div class="word"><span class="gradient">intelligent</span></div>
+      <div class="word"><span>products</span></div>
+      <div class="word"><span>that ship.</span></div>
+    </h1>
+    <div class="role-rotator">
+      <span class="role-text" id="roleText">GenAI Architect</span>
+    </div>
+    <p class="lede">
+      Hey, I'm Shaid. 15+ years across Belgium, Netherlands, and India shipping AI products, voice agents, and automation systems. Founder of S.H.A.A.I Solutions and creator of AI360.
+    </p>
+    <div class="cta-row">
+      <a href="#contact" class="btn btn-primary">Let's build something <span class="arrow">→</span></a>
+      <a href="#skills" class="btn btn-ghost">See my work</a>
+    </div>
+  </div>
+
+  <div class="photo-stage">
+    <div class="photo-glow"></div>
+    <div class="photo-frame" id="photoFrame">
+      <img src="shaidheadshotpic.png" alt="Shaid" id="heroPhoto" onerror="this.style.display='none';document.getElementById('photoPh').style.display='flex'">
+      <div class="photo-placeholder" id="photoPh" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0116 0v1"/></svg>
+        <div style="margin-bottom:18px">Drop your headshot here<br>or click to upload</div>
+        <label for="photoUpload" style="cursor:pointer;padding:10px 18px;border:1px solid var(--line-bright);border-radius:100px;font-size:12px;color:var(--ink);background:rgba(255,255,255,0.04);transition:all .3s;font-family:'Inter',sans-serif" onmouseover="this.style.borderColor='var(--accent-2)';this.style.color='var(--accent-2)'" onmouseout="this.style.borderColor='var(--line-bright)';this.style.color='var(--ink)'">Choose photo</label>
+        <input type="file" id="photoUpload" accept="image/*" style="display:none">
+      </div>
+    </div>
+    <div class="float-badge fb-1">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+      Voice Agents
+    </div>
+    <div class="float-badge fb-2">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#ff6b9d" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6v6H9z"/></svg>
+      GenAI Products
+    </div>
+    <div class="float-badge fb-3">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#ffd166" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 010 20M12 2a15 15 0 000 20"/></svg>
+      AI Automation
+    </div>
+  </div>
+
+  <div class="scroll-cue">
+    Scroll
+    <div class="line"></div>
+  </div>
+</section>
+
+<div class="marquee">
+  <div class="marquee-track">
+    <div class="marquee-item">Generative AI <span class="dot"></span></div>
+    <div class="marquee-item">Voice Agents <span class="dot"></span></div>
+    <div class="marquee-item">LLM Engineering <span class="dot"></span></div>
+    <div class="marquee-item">n8n Automation <span class="dot"></span></div>
+    <div class="marquee-item">Performance Engineering <span class="dot"></span></div>
+    <div class="marquee-item">Flutter Mobile <span class="dot"></span></div>
+    <div class="marquee-item">Next.js · Django <span class="dot"></span></div>
+    <div class="marquee-item">Supabase <span class="dot"></span></div>
+    <div class="marquee-item">Generative AI <span class="dot"></span></div>
+    <div class="marquee-item">Voice Agents <span class="dot"></span></div>
+    <div class="marquee-item">LLM Engineering <span class="dot"></span></div>
+    <div class="marquee-item">n8n Automation <span class="dot"></span></div>
+    <div class="marquee-item">Performance Engineering <span class="dot"></span></div>
+    <div class="marquee-item">Flutter Mobile <span class="dot"></span></div>
+    <div class="marquee-item">Next.js · Django <span class="dot"></span></div>
+    <div class="marquee-item">Supabase <span class="dot"></span></div>
+  </div>
+</div>
+
+<section id="about" class="reveal">
+  <div class="section-head">
+    <div>
+      <div class="section-num">01 — ABOUT</div>
+      <h2>From load tests to language models.</h2>
+    </div>
+    <div class="section-sub">A decade and a half of shipping systems that have to actually work, now applied to AI products that businesses bet on.</div>
+  </div>
+
+  <div class="about-grid">
+    <div class="about-text">
+      <p>I started out in <strong>performance testing and engineering</strong>, working with global enterprises across Europe to keep critical systems fast and reliable. JMeter, LoadRunner, NeoLoad, and the kind of production fires that teach you respect for real-world systems.</p>
+      <p>Today I design and ship <strong>generative AI products, voice agents, and intelligent automation</strong> for businesses across India and the Gulf. I run <strong>S.H.A.A.I Solutions</strong> for client work and create content under <strong>AI360 with Shaid</strong> to teach what I learn along the way.</p>
+      <p>The thread connecting both chapters: building things that hold up under load, whether that load is 10,000 concurrent users or a customer asking your AI agent something weird at 2am.</p>
+    </div>
+    <div class="stats-grid">
+      <div class="stat"><div class="stat-num" data-target="15">0</div><div class="stat-label">Years experience</div></div>
+      <div class="stat"><div class="stat-num" data-target="3">0</div><div class="stat-label">Countries worked</div></div>
+      <div class="stat"><div class="stat-num" data-target="50">0</div><div class="stat-label">Projects shipped</div></div>
+      <div class="stat"><div class="stat-num" data-target="2">0</div><div class="stat-label">Products live</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="skills" class="reveal">
+  <div class="section-head">
+    <div>
+      <div class="section-num">02 — WHAT I DO</div>
+      <h2>Four lanes I work in.</h2>
+    </div>
+    <div class="section-sub">Pick one or stack them. Most projects end up using two or three together.</div>
+  </div>
+
+  <div class="skills-grid">
+    <div class="skill-card">
+      <div class="skill-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+      <h3>GenAI Products</h3>
+      <p>Multi-agent systems, RAG pipelines, document AI, custom LLM workflows. Shipped, not slideware.</p>
+      <div class="skill-tags">
+        <span class="skill-tag">Claude</span><span class="skill-tag">GPT-4o</span><span class="skill-tag">RAG</span><span class="skill-tag">Agents</span>
+      </div>
+    </div>
+    <div class="skill-card">
+      <div class="skill-icon" style="background:rgba(255,107,157,.12);color:var(--accent-3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg></div>
+      <h3>Voice Agents</h3>
+      <p>No-code multilingual voice agents for Indian SMBs and Gulf businesses. Real conversations, real outcomes.</p>
+      <div class="skill-tags">
+        <span class="skill-tag">Retell</span><span class="skill-tag">VoiceForge</span><span class="skill-tag">Twilio</span>
+      </div>
+    </div>
+    <div class="skill-card">
+      <div class="skill-icon" style="background:rgba(255,209,102,.12);color:var(--accent-4)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><path d="M6 21V9a6 6 0 016-6h6"/></svg></div>
+      <h3>AI Automation</h3>
+      <p>n8n, Zapier, Python pipelines that wire your tools together and handle the boring work for you.</p>
+      <div class="skill-tags">
+        <span class="skill-tag">n8n</span><span class="skill-tag">Python</span><span class="skill-tag">Webhooks</span>
+      </div>
+    </div>
+    <div class="skill-card">
+      <div class="skill-icon" style="background:rgba(0,255,157,.12);color:#00ff9d"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10M18 20V4M6 20v-6"/></svg></div>
+      <h3>Performance Engineering</h3>
+      <p>Load testing, scalability, observability. The stuff that keeps your AI product up when traffic spikes.</p>
+      <div class="skill-tags">
+        <span class="skill-tag">JMeter</span><span class="skill-tag">LoadRunner</span><span class="skill-tag">NeoLoad</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="journey" class="reveal">
+  <div class="section-head">
+    <div>
+      <div class="section-num">03 — JOURNEY</div>
+      <h2>The path so far.</h2>
+    </div>
+    <div class="section-sub">Three countries, two careers, one through-line: building things that work in production.</div>
+  </div>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-period">2024 — PRESENT</div>
+      <div class="tl-role">GenAI Architect & Founder</div>
+      <div class="tl-company">S.H.A.A.I Solutions · AI360 with Shaid · Chennai</div>
+      <div class="tl-desc">Designing and shipping AI products, voice agents, and automation systems for clients across India and the Gulf. Teaching AI through content and workshops on Instagram, LinkedIn, and WhatsApp.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-period">2018 — 2024</div>
+      <div class="tl-role">Senior Performance Test Strategist</div>
+      <div class="tl-company">Independent Consultant · Belgium & Netherlands</div>
+      <div class="tl-desc">Led performance engineering strategy for global enterprises across Europe. Owned end-to-end testing for systems handling millions of transactions.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-period">2010 — 2018</div>
+      <div class="tl-role">Performance Test Lead</div>
+      <div class="tl-company">Tech Mahindra · Cognizant · India</div>
+      <div class="tl-desc">Built performance testing practices from the ground up. JMeter, LoadRunner, NeoLoad, Dynatrace. Trained teams, scoped projects, kept production from melting.</div>
+    </div>
+  </div>
+</section>
+
+<section id="contact" class="contact-section reveal">
+  <div class="section-num">04 — CONTACT</div>
+  <h2>Let's talk.</h2>
+  <p class="contact-lede">Got an AI project, a voice agent idea, or a performance problem keeping you up at night? Reach out through whichever channel works for you.</p>
+
+  <div class="contact-grid">
+    <a href="https://www.linkedin.com/in/shaid360" target="_blank" rel="noopener" class="contact-card">
+      <div class="contact-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h14zM8.339 18.337V9.725H5.67v8.612h2.669zM7.003 8.575a1.546 1.546 0 100-3.092 1.546 1.546 0 000 3.092zM18.338 18.337v-4.717c0-2.413-1.305-3.536-3.046-3.536-1.405 0-2.034.773-2.385 1.316V9.725h-2.669c.035.753 0 8.612 0 8.612h2.669v-4.81c0-.24.017-.48.088-.652.193-.48.633-.977 1.371-.977.967 0 1.354.737 1.354 1.817v4.622h2.618z"/></svg></div>
+      <div>
+        <div class="contact-label">LinkedIn</div>
+        <div class="contact-value">/in/shaid360</div>
+      </div>
+    </a>
+    <a href="https://www.shaid360.com" target="_blank" rel="noopener" class="contact-card">
+      <div class="contact-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 010 20M12 2a15 15 0 000 20"/></svg></div>
+      <div>
+        <div class="contact-label">Website</div>
+        <div class="contact-value">shaid360.com</div>
+      </div>
+    </a>
+    <a href="https://www.instagram.com/ai360_with_shaid" target="_blank" rel="noopener" class="contact-card">
+      <div class="contact-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg></div>
+      <div>
+        <div class="contact-label">Instagram</div>
+        <div class="contact-value">@ai360_with_shaid</div>
+      </div>
+    </a>
+    <a href="mailto:hello@shaid360.com" class="contact-card">
+      <div class="contact-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 7L2 7"/></svg></div>
+      <div>
+        <div class="contact-label">Email</div>
+        <div class="contact-value">hello@shaid360.com</div>
+      </div>
+    </a>
+  </div>
+</section>
+
+<footer>
+  <div>© 2026 Muhibbuddin Shaid Hakkeem · Chennai, IN</div>
+  <div>Crafted with <span class="heart">♥</span> and a lot of coffee</div>
+</footer>
+
+<script>
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+let mx=0,my=0,rx=0,ry=0;
+window.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cursor.style.transform=`translate(${mx-4}px,${my-4}px)`});
+function animateRing(){rx+=(mx-rx)*.15;ry+=(my-ry)*.15;ring.style.transform=`translate(${rx-18}px,${ry-18}px)`;requestAnimationFrame(animateRing)}
+animateRing();
+document.querySelectorAll('a,button,.skill-card,.stat,.photo-frame,.contact-card').forEach(el=>{
+  el.addEventListener('mouseenter',()=>ring.classList.add('hover'));
+  el.addEventListener('mouseleave',()=>ring.classList.remove('hover'));
+});
+
+const nav = document.getElementById('nav');
+window.addEventListener('scroll',()=>nav.classList.toggle('scrolled',window.scrollY>20));
+
+const roles = ['GenAI Architect','AI Product Builder','Voice Agent Specialist','Performance Engineer','Founder, S.H.A.A.I Solutions','AI Educator'];
+const roleEl = document.getElementById('roleText');
+let ri=0,ci=0,deleting=false;
+function typeRole(){
+  const cur = roles[ri];
+  if(!deleting){
+    roleEl.textContent = cur.slice(0,++ci);
+    if(ci===cur.length){deleting=true;setTimeout(typeRole,1800);return}
+  }else{
+    roleEl.textContent = cur.slice(0,--ci);
+    if(ci===0){deleting=false;ri=(ri+1)%roles.length}
+  }
+  setTimeout(typeRole, deleting?40:75);
+}
+typeRole();
+
+const io = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}});
+},{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+const sio = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      const el = e.target;
+      const target = +el.dataset.target;
+      const dur = 1600;
+      const start = performance.now();
+      function tick(t){
+        const p = Math.min((t-start)/dur,1);
+        const eased = 1-Math.pow(1-p,3);
+        el.textContent = Math.round(target*eased) + (target>=15?'+':'');
+        if(p<1) requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+      sio.unobserve(el);
+    }
+  });
+},{threshold:.5});
+document.querySelectorAll('.stat-num').forEach(el=>sio.observe(el));
+
+document.querySelectorAll('.skill-card').forEach(card=>{
+  card.addEventListener('mousemove',e=>{
+    const r = card.getBoundingClientRect();
+    card.style.setProperty('--mx',((e.clientX-r.left)/r.width*100)+'%');
+    card.style.setProperty('--my',((e.clientY-r.top)/r.height*100)+'%');
+  });
+});
+
+const frame = document.getElementById('photoFrame');
+if(frame){
+  frame.addEventListener('mousemove',e=>{
+    const r = frame.getBoundingClientRect();
+    const x = (e.clientX-r.left)/r.width-.5;
+    const y = (e.clientY-r.top)/r.height-.5;
+    frame.style.transform = `perspective(1000px) rotateY(${x*12}deg) rotateX(${-y*12}deg) scale(1.02)`;
+  });
+  frame.addEventListener('mouseleave',()=>{
+    frame.style.transform = 'perspective(1000px) rotateY(-6deg) rotateX(2deg)';
+  });
+}
+
+const canvas = document.getElementById('particles');
+const ctx = canvas.getContext('2d');
+let parts = [];
+function resize(){canvas.width=innerWidth;canvas.height=innerHeight}
+resize();
+window.addEventListener('resize',resize);
+for(let i=0;i<60;i++){
+  parts.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3,r:Math.random()*1.4+.4,o:Math.random()*.4+.1});
+}
+function drawParts(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  parts.forEach(p=>{
+    p.x+=p.vx;p.y+=p.vy;
+    if(p.x<0||p.x>canvas.width)p.vx*=-1;
+    if(p.y<0||p.y>canvas.height)p.vy*=-1;
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle=`rgba(124,92,255,${p.o})`;
+    ctx.fill();
+  });
+  requestAnimationFrame(drawParts);
+}
+drawParts();
+
+document.querySelectorAll('a[href^="#"]').forEach(a=>{
+  a.addEventListener('click',e=>{
+    const id = a.getAttribute('href');
+    if(id.length>1){
+      e.preventDefault();
+      document.querySelector(id)?.scrollIntoView({behavior:'smooth',block:'start'});
+    }
+  });
+});
+
+// Show placeholder immediately since image won't load in artifact preview
+setTimeout(()=>{
+  const img = document.getElementById('heroPhoto');
+  if(img && !img.complete){
+    img.style.display='none';
+    document.getElementById('photoPh').style.display='flex';
+  }
+},800);
+
+// Photo upload handler — reads file as data URL and swaps it in
+document.getElementById('photoUpload').addEventListener('change', function(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    const img = document.getElementById('heroPhoto');
+    img.src = ev.target.result;
+    img.style.display = 'block';
+    document.getElementById('photoPh').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+});
+</script>
+</body>
+</html>
